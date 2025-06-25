@@ -1456,7 +1456,18 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate,
         if let applePayAPIEnabled = settings?.applePayAPIEnabled, applePayAPIEnabled {
             return
         }
-        super.evaluateJavaScript(javaScript, in: frame, in: contentWorld, completionHandler: completionHandler)
+        if frame == nil && contentWorld == .page {
+            super.evaluateJavaScript(javaScript) { value, error in
+                guard let completionHandler = completionHandler else { return }
+                if let error = error {
+                    completionHandler(.failure(error))
+                } else {
+                    completionHandler(.success(value as Any))
+                }
+            }
+        } else {
+            super.evaluateJavaScript(javaScript, in: frame, in: contentWorld, completionHandler: completionHandler)
+        }
     }
     
     public func evaluateJavascript(source: String, completionHandler: ((Any?) -> Void)? = nil) {
